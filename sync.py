@@ -91,6 +91,17 @@ def send_email(subject, body):
     logger.info("Email sent!")
 
 
+def _test_fitbit_token_refresh():
+    client_id = os.getenv("FITBIT_CLIENT_ID")
+    if client_id is None:
+        logger.error("FITBIT_CLIENT_ID environment variable is not set")
+        sys.exit(1)
+
+    redirect_uri = os.getenv("FITBIT_REDIRECT_URI") or 'http://127.0.0.1:8080'
+    fitbit = Fitbit(client_id, redirect_uri)
+    fitbit.client.refresh_token()
+
+
 if __name__ == '__main__':
     logger.info("---------------------------------------------")
     logger.info("Starting sync for {0}".format(datetime.date.today()))

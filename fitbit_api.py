@@ -103,6 +103,7 @@ class FitBitOAuth2Handler(object):
         self.client = WebApplicationClient(client_id, redirect_uri=redirect_uri)
         self.authorization_base_url = 'https://www.fitbit.com/oauth2/authorize'
         self.authorization_token_url = 'https://api.fitbit.com/oauth2/token'
+        self.refresh_token_url = self.authorization_token_url
 
         self.token = self.get_authorization_token()
         if self.token is None:
@@ -129,6 +130,12 @@ class FitBitOAuth2Handler(object):
                     logger.info("Successfully deleted entry for %s", url)
                     return None, response.status_code
                 return response.json(), response.status_code
+            elif response.status_code == 401:
+                d = response.json()
+                if d["errors"][0]["errorType"] == "expired_token":
+                    logger.info("Refreshing Fitbit tokens...")
+                    self.refresh_token()
+                    self.make_request(url, data=data, method=method, **kwargs)
             else:
                 logger.error("Request failed with status %d: %s", response.status_code, response.text)
                 return response.json() if response.text else {}, response.status_code
@@ -185,6 +192,26 @@ class FitBitOAuth2Handler(object):
 
         self.token = token
         return token
+
+    def refresh_token(self):
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+
+        body = {
+            "client_id": self.client_id,
+            "refresh_token": self.token["refresh_token"],
+            "grant_type": "refresh_token",
+        }
+
+        response = requests.post(self.refresh_token_url, data=body, headers=headers)
+        if response.ok:
+            logger.info("Successfully retrieved refreshed access token")
+            refreshed_token = response.json()
+            self.token = refreshed_token
+            dump_token(refreshed_token)
+        else:
+            raise Exception("Failed to refresh token: " + response.text)
 
 
 def generate_code_verifier(length=64):
