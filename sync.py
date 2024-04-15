@@ -13,12 +13,12 @@ logger = logging_config.get_logger(__name__)
 def _sync(start_date, end_date):
     garmin = Garmin()
 
-    client_id = os.getenv("GARMIN_CLIENT_ID")
+    client_id = os.getenv("FITBIT_CLIENT_ID")
     if client_id is None:
-        logger.error("GARMIN_CLIENT_ID environment variable is not set")
+        logger.error("FITBIT_CLIENT_ID environment variable is not set")
         sys.exit(1)
 
-    redirect_uri = os.getenv("GARMIN_REDIRECT_URI") or 'http://127.0.0.1:8080'
+    redirect_uri = os.getenv("FITBIT_REDIRECT_URI") or 'http://127.0.0.1:8080'
     fitbit = Fitbit(client_id, redirect_uri)
 
     try:
