@@ -30,17 +30,19 @@ def _sync(start_date, end_date):
         return
 
     if not daily_step_list:
-        logger.error("No steps found for provided date range!")
-        send_email("Garmin Sync for {0} failed".format(start_date),
-                   "No steps found for provided date range!")
+        logger.error("No steps found for provided date range: "
+                     "{0}-{1}".format(start_date, end_date))
         return
 
     try:
         for day in daily_step_list:
             step_count = day["totalSteps"]
             calendar_date = day["calendarDate"]
-            calories = garmin.get_calories_for_day(calendar_date)
-            fitbit.post_step_count(step_count, date=calendar_date, calories=calories)
+            if step_count is not None:
+                calories = garmin.get_calories_for_day(calendar_date)
+                fitbit.post_step_count(step_count, date=calendar_date, calories=calories)
+            else:
+                logger.info("No steps found for calendar date {0}".format(calendar_date))
     except ValueError as e:
         logger_error = str(e)
         body = traceback.format_exc()
