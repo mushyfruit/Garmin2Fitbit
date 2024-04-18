@@ -135,7 +135,7 @@ class FitBitOAuth2Handler(object):
                 if d["errors"][0]["errorType"] == "expired_token":
                     logger.info("Refreshing Fitbit tokens...")
                     self.refresh_token()
-                    self.make_request(url, data=data, method=method, **kwargs)
+                    return self.make_request(url, data=data, method=method, **kwargs)
             else:
                 logger.error("Request failed with status %d: %s", response.status_code, response.text)
                 return response.json() if response.text else {}, response.status_code
